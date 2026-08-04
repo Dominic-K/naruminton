@@ -5,48 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>나루민턴 자체대회 대진표</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .header h1 { color: #0b5394; font-size: 24px; margin: 0 0 10px 0; }
-        .header p { color: #666; font-size: 14px; margin: 0; }
+        :root {
+            --bg-color: #f4f7f6; --text-color: #333; --sub-text: #666;
+            --card-bg: white; --border-color: #ccc;
+            --blue-bg: #e8f4f8; --blue-border: #bce8f1; --blue-text: #0b5394;
+            --red-bg: #fce8e8; --red-border: #f2dede; --red-text: #cc0000;
+            --win-blue-bg: #c4e3f3; --win-red-bg: #fbd5d5;
+            --highlight-bg: #fffacd;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212; --text-color: #e0e0e0; --sub-text: #aaa;
+            --card-bg: #1e1e1e; --border-color: #444;
+            --blue-bg: #0a1f33; --blue-border: #0b5394; --blue-text: #6baed6;
+            --red-bg: #330a0a; --red-border: #cc0000; --red-text: #fb6a4a;
+            --win-blue-bg: #0d3b66; --win-red-bg: #660d0d;
+            --highlight-bg: #5c4d05;
+        }
+
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-color); transition: background-color 0.3s, color 0.3s; }
+        
+        .header { text-align: center; margin-bottom: 15px; position: relative; }
+        .header h1 { color: var(--blue-text); font-size: 24px; margin: 0 0 10px 0; }
+        .header p { color: var(--sub-text); font-size: 14px; margin: 0; }
+        .dark-mode-btn { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 20px; cursor: pointer; }
+
+        .scoreboard-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
+        .score-box-main { flex: 1; max-width: 150px; text-align: center; padding: 15px 10px; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .score-blue { background-color: var(--blue-bg); border: 2px solid var(--blue-border); color: var(--blue-text); }
+        .score-red { background-color: var(--red-bg); border: 2px solid var(--red-border); color: var(--red-text); }
+        .score-num { font-size: 28px; display: block; margin-top: 5px; }
+
         .search-box { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; }
-        .search-box input { padding: 12px; font-size: 16px; border: 2px solid #ccc; border-radius: 8px; width: 100%; max-width: 300px; text-align: center; margin-bottom: 5px; }
+        .search-box input { padding: 12px; font-size: 16px; border: 2px solid var(--border-color); border-radius: 8px; width: 100%; max-width: 300px; text-align: center; margin-bottom: 5px; background: var(--card-bg); color: var(--text-color); }
         .btn { padding: 12px 15px; font-size: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; flex: 1; max-width: 120px;}
         .btn-search { background-color: #0b5394; }
         .btn-all { background-color: #555555; }
         .btn-team { background-color: #2e7d32; }
         
-        .match-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 6px solid #ccc; }
+        .match-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 6px solid var(--border-color); transition: background-color 0.3s; }
         .match-card.event { border-left-color: #f1c232; background-color: #fffde7; }
-        .round-title { font-size: 18px; color: #0b5394; border-bottom: 2px solid #0b5394; padding-bottom: 5px; margin: 25px 0 15px 0; font-weight: bold; }
-        .time { font-size: 14px; color: #555; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #ddd; padding-bottom: 8px; }
-        .court { font-size: 16px; font-weight: bold; color: #222; margin-bottom: 12px; text-align: center; }
+        body.dark-mode .match-card.event { background-color: #4a452a; }
+        
+        .round-title { font-size: 18px; color: var(--blue-text); border-bottom: 2px solid var(--blue-text); padding-bottom: 5px; margin: 25px 0 15px 0; font-weight: bold; }
+        .time { font-size: 14px; color: var(--sub-text); font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; }
+        .court { font-size: 16px; font-weight: bold; margin-bottom: 12px; text-align: center; }
         
         .teams { display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
         .team { flex: 1; text-align: center; padding: 12px 5px; border-radius: 8px; font-weight: bold; transition: all 0.3s; }
-        .team-a { background-color: #e8f4f8; border: 1px solid #bce8f1; color: #0b5394; }
-        .team-b { background-color: #fce8e8; border: 1px solid #f2dede; color: #cc0000; }
-        .vs { font-weight: bold; color: #999; margin: 0 10px; }
+        .team-a { background-color: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-text); }
+        .team-b { background-color: var(--red-bg); border: 1px solid var(--red-border); color: var(--red-text); }
+        .vs { font-weight: bold; color: var(--sub-text); margin: 0 10px; }
         
-        /* 🏆 승패 강조 스타일 🏆 */
-        .score-box { font-size: 20px; font-weight: 900; margin-top: 8px; color: #333; }
-        .winner-a { background-color: #c4e3f3; border: 2px solid #0b5394; transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(11,83,148,0.3); }
-        .winner-b { background-color: #fbd5d5; border: 2px solid #cc0000; transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(204,0,0,0.3); }
-        .winner-a .score-box { color: #0b5394; font-size: 26px; }
-        .winner-b .score-box { color: #cc0000; font-size: 26px; }
+        .score-box { font-size: 20px; font-weight: 900; margin-top: 8px; color: var(--text-color); }
+        .winner-a { background-color: var(--win-blue-bg); border: 2px solid var(--blue-border); transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(11,83,148,0.3); }
+        .winner-b { background-color: var(--win-red-bg); border: 2px solid var(--red-border); transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(204,0,0,0.3); }
+        .winner-a .score-box { color: var(--blue-text); font-size: 26px; }
+        .winner-b .score-box { color: var(--red-text); font-size: 26px; }
         .loser { opacity: 0.5; filter: grayscale(50%); }
 
-        .highlight { color: #d90429; font-weight: 900; text-decoration: underline; font-size: 17px; background-color: #fffacd; }
-        .empty-msg { text-align: center; font-size: 16px; color: #777; margin-top: 30px; line-height: 1.5; }
+        .highlight { color: #d90429; font-weight: 900; text-decoration: underline; font-size: 17px; background-color: var(--highlight-bg); }
+        body.dark-mode .highlight { color: #ff6b6b; }
+        .empty-msg { text-align: center; font-size: 16px; color: var(--sub-text); margin-top: 30px; line-height: 1.5; }
         
         .faction-container { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px; }
-        .faction-box { flex: 1 1 45%; min-width: 140px; background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .faction-box.blue { border-top: 6px solid #0b5394; }
-        .faction-box.red { border-top: 6px solid #cc0000; }
+        .faction-box { flex: 1 1 45%; min-width: 140px; background: var(--card-bg); border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .faction-box.blue { border-top: 6px solid var(--blue-border); }
+        .faction-box.red { border-top: 6px solid var(--red-border); }
         .faction-title { text-align: center; font-size: 18px; font-weight: bold; margin: 0 0 15px 0; }
         .name-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; margin: 4px; }
-        .badge-blue { background-color: #e8f4f8; color: #0b5394; border: 1px solid #bce8f1; }
-        .badge-red { background-color: #fce8e8; color: #cc0000; border: 1px solid #f2dede; }
+        .badge-blue { background-color: var(--blue-bg); color: var(--blue-text); border: 1px solid var(--blue-border); }
+        .badge-red { background-color: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-border); }
+
+        .scroll-top-btn {
+            display: none; position: fixed; bottom: 30px; right: 30px; z-index: 99; 
+            font-size: 16px; font-weight: bold; border: none; outline: none; 
+            background-color: #0b5394; color: white; cursor: pointer; 
+            padding: 15px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -54,40 +90,120 @@
     <div class="header">
         <h1>🏸 나루민턴 실시간 중계</h1>
         <p>이름 검색, 전체 일정, 점수 및 진영을 확인하세요!</p>
+        <button class="dark-mode-btn" id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
+    </div>
+
+    <div class="scoreboard-container">
+        <div class="score-box-main score-blue">
+            🔵 청팀
+            <span class="score-num" id="totalBlueWins">0승</span>
+        </div>
+        <div class="score-box-main score-red">
+            🔴 홍팀
+            <span class="score-num" id="totalRedWins">0승</span>
+        </div>
     </div>
 
     <div style="text-align: center; width: 100%;">
         <div class="search-box">
-            <input type="text" id="playerName" placeholder="이름을 입력하세요" onkeypress="if(event.keyCode==13) searchSchedule()">
+            <input type="text" id="playerName" placeholder="이름을 입력하세요" onkeypress="if(event.keyCode==13) clickSearch()">
         </div>
         <div class="search-box">
-            <button class="btn btn-search" onclick="searchSchedule()">내 일정</button>
-            <button class="btn btn-all" onclick="showAllSchedule()">전체 일정</button>
-            <button class="btn btn-team" onclick="showTeams()">출전 팀 명단</button>
+            <button class="btn btn-search" onclick="clickSearch()">내 일정</button>
+            <button class="btn btn-all" onclick="clickAll()">전체 일정</button>
+            <button class="btn btn-team" onclick="clickTeam()">출전 팀 명단</button>
         </div>
     </div>
 
     <div id="results"></div>
+    <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">⬆️</button>
 
     <script>
         let scheduleData = [];
         let blueTeam = [];
         let redTeam = [];
+        let currentViewMode = 'all'; 
+        let currentSearchName = '';
 
-        // 데이터 불러오기
-        fetch('web_schedule.json?t=' + new Date().getTime())
-            .then(response => response.json())
-            .then(data => {
-                scheduleData = data.schedule || [];
-                blueTeam = data.blue_team || [];
-                redTeam = data.red_team || [];
-                showAllSchedule();
-            })
-            .catch(error => {
-                document.getElementById('results').innerHTML = "<p class='empty-msg'>일정 데이터를 불러오지 못했습니다.<br>관리자가 곧 업로드할 예정입니다.</p>";
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('narumintonDarkMode', isDark);
+            document.getElementById('darkModeToggle').innerText = isDark ? '☀️' : '🌙';
+        }
+        if (localStorage.getItem('narumintonDarkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeToggle').innerText = '☀️';
+        }
+
+        function loadData(isAuto = false) {
+            fetch('web_schedule.json?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(data => {
+                    scheduleData = data.schedule || [];
+                    blueTeam = data.blue_team || [];
+                    redTeam = data.red_team || [];
+                    
+                    updateTotalScoreboard(); 
+                    
+                    if (currentViewMode === 'search') renderSearch(currentSearchName);
+                    else if (currentViewMode === 'team') renderTeam();
+                    else renderAll();
+                })
+                .catch(error => {
+                    if (!isAuto) {
+                        document.getElementById('results').innerHTML = "<p class='empty-msg'>일정 데이터를 불러오지 못했습니다.<br>관리자가 곧 업로드할 예정입니다.</p>";
+                    }
+                });
+        }
+
+        function updateTotalScoreboard() {
+            let blueWins = 0;
+            let redWins = 0;
+
+            scheduleData.forEach(round => {
+                round.matches.forEach(match => {
+                    if (match.is_event) return;
+                    const sa = parseInt(match.score_a, 10);
+                    const sb = parseInt(match.score_b, 10);
+                    
+                    if (!isNaN(sa) && !isNaN(sb)) {
+                        if (sa > sb) blueWins++;
+                        else if (sb > sa) redWins++;
+                    }
+                });
             });
 
-        // 🏆 점수를 비교해서 승패 카드 HTML을 만들어주는 공통 함수
+            document.getElementById('totalBlueWins').innerText = blueWins + "승";
+            document.getElementById('totalRedWins').innerText = redWins + "승";
+        }
+
+        loadData(false);
+        setInterval(() => { loadData(true); }, 30000); 
+
+        function clickSearch() {
+            const nameInput = document.getElementById('playerName').value.trim();
+            if (!nameInput) {
+                document.getElementById('results').innerHTML = "<p class='empty-msg'>검색할 이름을 입력해주세요.</p>";
+                return;
+            }
+            currentViewMode = 'search';
+            currentSearchName = nameInput;
+            renderSearch(currentSearchName);
+        }
+
+        function clickAll() {
+            currentViewMode = 'all';
+            document.getElementById('playerName').value = ''; 
+            renderAll();
+        }
+
+        function clickTeam() {
+            currentViewMode = 'team';
+            document.getElementById('playerName').value = ''; 
+            renderTeam();
+        }
+
         function createMatchHTML(match, nameInput = null) {
             if (match.is_event) {
                 return `<div class="match-card event">
@@ -99,7 +215,6 @@
             const teamA = match.team_a || [];
             const teamB = match.team_b || [];
             
-            // 점수 분석 로직
             const scoreA = match.score_a || "";
             const scoreB = match.score_b || "";
             const numA = parseInt(scoreA, 10);
@@ -113,7 +228,6 @@
                 else if (numB > numA) isWinnerB = true;
             }
 
-            // 디자인 클래스 및 아이콘 설정
             const classA = "team team-a" + (isWinnerA ? " winner-a" : "") + (isWinnerB ? " loser" : "");
             const classB = "team team-b" + (isWinnerB ? " winner-b" : "") + (isWinnerA ? " loser" : "");
             const iconA = isWinnerA ? "👑" : "🔵";
@@ -122,16 +236,15 @@
             const displayScoreA = scoreA ? `<div class="score-box">${scoreA}</div>` : "";
             const displayScoreB = scoreB ? `<div class="score-box">${scoreB}</div>` : "";
 
-            // 이름 검색 시 형광펜 하이라이트 기능
             const highlight = (arr) => {
                 if(!nameInput) return arr.join(' & ');
-                return arr.map(p => p === nameInput ? `<span class="highlight">${p}</span>` : p).join(' & ');
+                return arr.map(p => p.includes(nameInput) ? `<span class="highlight">${p}</span>` : p).join(' & ');
             };
 
-            let borderColor = "#ccc";
+            let borderColor = "var(--border-color)";
             if (nameInput) {
-                if (teamB.includes(nameInput)) borderColor = "#cc0000";
-                else if (teamA.includes(nameInput)) borderColor = "#0b5394";
+                if (teamB.some(p => p.includes(nameInput))) borderColor = "var(--red-border)";
+                else if (teamA.some(p => p.includes(nameInput))) borderColor = "var(--blue-border)";
             }
 
             return `
@@ -152,16 +265,8 @@
             `;
         }
 
-        function searchSchedule() {
-            const nameInput = document.getElementById('playerName').value.trim();
+        function renderSearch(nameInput) {
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = ''; 
-
-            if (!nameInput) {
-                resultsDiv.innerHTML = "<p class='empty-msg'>검색할 이름을 입력해주세요.</p>";
-                return;
-            }
-
             let matchCount = 0;
             let htmlStr = "";
 
@@ -169,11 +274,10 @@
                 const timeStr = round.time || `${round.round}회차`;
                 round.matches.forEach(match => {
                     if (match.is_event) return; 
-
                     const teamA = match.team_a || [];
                     const teamB = match.team_b || [];
 
-                    if (teamA.includes(nameInput) || teamB.includes(nameInput)) {
+                    if (teamA.some(p => p.includes(nameInput)) || teamB.some(p => p.includes(nameInput))) {
                         matchCount++;
                         htmlStr += `<div class="time">🕒 ${timeStr}</div>`;
                         htmlStr += createMatchHTML(match, nameInput);
@@ -184,13 +288,12 @@
             if (matchCount === 0) {
                 resultsDiv.innerHTML = `<p class='empty-msg'>'<b>${nameInput}</b>' 선수의 출전 일정이 없습니다.</p>`;
             } else {
-                resultsDiv.innerHTML = `<div style="text-align:center; margin-bottom:20px; font-weight:bold; color:#0b5394;">✅ [${nameInput}]님은 총 <b>${matchCount}경기</b> 출전합니다.</div>` + htmlStr;
+                resultsDiv.innerHTML = `<div style="text-align:center; margin-bottom:20px; font-weight:bold; color:var(--blue-text);">✅ [${nameInput}]님은 총 <b>${matchCount}경기</b> 출전합니다.</div>` + htmlStr;
             }
         }
 
-        function showAllSchedule() {
+        function renderAll() {
             const resultsDiv = document.getElementById('results');
-            document.getElementById('playerName').value = ''; 
             let htmlStr = "";
 
             scheduleData.forEach(round => {
@@ -203,32 +306,42 @@
             resultsDiv.innerHTML = htmlStr;
         }
 
-        function showTeams() {
+        function renderTeam() {
             const resultsDiv = document.getElementById('results');
-            document.getElementById('playerName').value = ''; 
-            
             if (blueTeam.length === 0 && redTeam.length === 0) {
                 resultsDiv.innerHTML = `<div class="round-title">👥 대회 참가 진영 명단</div><p class='empty-msg'>명단이 아직 생성되지 않았습니다.</p>`;
                 return;
             }
 
             let html = `<div class="round-title">👥 대회 참가 진영 명단</div><div class="faction-container">`;
-            
             html += `<div class="faction-box blue">
-                        <h3 class="faction-title" style="color:#0b5394;">🔵 청팀 (총 ${blueTeam.length}명)</h3>
+                        <h3 class="faction-title" style="color:var(--blue-text);">🔵 청팀 (총 ${blueTeam.length}명)</h3>
                         <div style="text-align:center;">
                             ${blueTeam.map(name => `<span class="name-badge badge-blue">${name}</span>`).join('')}
                         </div>
                     </div>`;
 
             html += `<div class="faction-box red">
-                        <h3 class="faction-title" style="color:#cc0000;">🔴 홍팀 (총 ${redTeam.length}명)</h3>
+                        <h3 class="faction-title" style="color:var(--red-text);">🔴 홍팀 (총 ${redTeam.length}명)</h3>
                         <div style="text-align:center;">
                             ${redTeam.map(name => `<span class="name-badge badge-red">${name}</span>`).join('')}
                         </div>
                     </div></div>`;
             
             resultsDiv.innerHTML = html;
+        }
+
+        window.onscroll = function() {
+            const btn = document.getElementById("scrollTopBtn");
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                btn.style.display = "block";
+            } else {
+                btn.style.display = "none";
+            }
+        };
+
+        function scrollToTop() {
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
     </script>
 </body>
