@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나루민턴 자체대회 시스템</title>
+    <title>나루민턴 자체대회 대진표</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
         .header { text-align: center; margin-bottom: 25px; }
@@ -15,27 +15,45 @@
         .btn-search { background-color: #0b5394; }
         .btn-all { background-color: #555555; }
         .btn-team { background-color: #2e7d32; }
+        
         .match-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 6px solid #ccc; }
         .match-card.event { border-left-color: #f1c232; background-color: #fffde7; }
         .round-title { font-size: 18px; color: #0b5394; border-bottom: 2px solid #0b5394; padding-bottom: 5px; margin: 25px 0 15px 0; font-weight: bold; }
         .time { font-size: 14px; color: #555; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #ddd; padding-bottom: 8px; }
         .court { font-size: 16px; font-weight: bold; color: #222; margin-bottom: 12px; text-align: center; }
+        
         .teams { display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
-        .team { flex: 1; text-align: center; padding: 12px 5px; border-radius: 8px; font-weight: bold; }
+        .team { flex: 1; text-align: center; padding: 12px 5px; border-radius: 8px; font-weight: bold; transition: all 0.3s; }
         .team-a { background-color: #e8f4f8; border: 1px solid #bce8f1; color: #0b5394; }
         .team-b { background-color: #fce8e8; border: 1px solid #f2dede; color: #cc0000; }
         .vs { font-weight: bold; color: #999; margin: 0 10px; }
+        
+        /* 🏆 승패 강조 스타일 🏆 */
+        .score-box { font-size: 20px; font-weight: 900; margin-top: 8px; color: #333; }
+        .winner-a { background-color: #c4e3f3; border: 2px solid #0b5394; transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(11,83,148,0.3); }
+        .winner-b { background-color: #fbd5d5; border: 2px solid #cc0000; transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(204,0,0,0.3); }
+        .winner-a .score-box { color: #0b5394; font-size: 26px; }
+        .winner-b .score-box { color: #cc0000; font-size: 26px; }
+        .loser { opacity: 0.5; filter: grayscale(50%); }
+
         .highlight { color: #d90429; font-weight: 900; text-decoration: underline; font-size: 17px; background-color: #fffacd; }
         .empty-msg { text-align: center; font-size: 16px; color: #777; margin-top: 30px; line-height: 1.5; }
-        .team-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .team-box { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 40%; text-align: center; font-weight: bold; border-top: 4px solid #2e7d32; }
+        
+        .faction-container { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px; }
+        .faction-box { flex: 1 1 45%; min-width: 140px; background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .faction-box.blue { border-top: 6px solid #0b5394; }
+        .faction-box.red { border-top: 6px solid #cc0000; }
+        .faction-title { text-align: center; font-size: 18px; font-weight: bold; margin: 0 0 15px 0; }
+        .name-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; margin: 4px; }
+        .badge-blue { background-color: #e8f4f8; color: #0b5394; border: 1px solid #bce8f1; }
+        .badge-red { background-color: #fce8e8; color: #cc0000; border: 1px solid #f2dede; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🏸 나루민턴 대회 시스템</h1>
-        <p>이름 검색, 전체 일정, 출전 팀 명단을 확인하세요!</p>
+        <h1>🏸 나루민턴 실시간 중계</h1>
+        <p>이름 검색, 전체 일정, 점수 및 진영을 확인하세요!</p>
     </div>
 
     <div style="text-align: center; width: 100%;">
@@ -53,21 +71,87 @@
 
     <script>
         let scheduleData = [];
-        let teamData = [];
+        let blueTeam = [];
+        let redTeam = [];
 
-        // 데이터 불러오기 (자동 새로고침 방지를 위해 캐시 무시)
+        // 데이터 불러오기
         fetch('web_schedule.json?t=' + new Date().getTime())
             .then(response => response.json())
             .then(data => {
                 scheduleData = data.schedule || [];
-                teamData = data.teams || [];
+                blueTeam = data.blue_team || [];
+                redTeam = data.red_team || [];
                 showAllSchedule();
             })
             .catch(error => {
                 document.getElementById('results').innerHTML = "<p class='empty-msg'>일정 데이터를 불러오지 못했습니다.<br>관리자가 곧 업로드할 예정입니다.</p>";
             });
 
-        // 1. 내 일정 검색
+        // 🏆 점수를 비교해서 승패 카드 HTML을 만들어주는 공통 함수
+        function createMatchHTML(match, nameInput = null) {
+            if (match.is_event) {
+                return `<div class="match-card event">
+                            <div class="court">🏸 ${match.court}번 코트</div>
+                            <div style="text-align:center; font-weight:bold; color:#b45f06; padding: 10px 0;">⭐ 특별 이벤트 타임 ⭐</div>
+                        </div>`;
+            }
+
+            const teamA = match.team_a || [];
+            const teamB = match.team_b || [];
+            
+            // 점수 분석 로직
+            const scoreA = match.score_a || "";
+            const scoreB = match.score_b || "";
+            const numA = parseInt(scoreA, 10);
+            const numB = parseInt(scoreB, 10);
+            
+            let isWinnerA = false;
+            let isWinnerB = false;
+
+            if (!isNaN(numA) && !isNaN(numB)) {
+                if (numA > numB) isWinnerA = true;
+                else if (numB > numA) isWinnerB = true;
+            }
+
+            // 디자인 클래스 및 아이콘 설정
+            const classA = "team team-a" + (isWinnerA ? " winner-a" : "") + (isWinnerB ? " loser" : "");
+            const classB = "team team-b" + (isWinnerB ? " winner-b" : "") + (isWinnerA ? " loser" : "");
+            const iconA = isWinnerA ? "👑" : "🔵";
+            const iconB = isWinnerB ? "👑" : "🔴";
+            
+            const displayScoreA = scoreA ? `<div class="score-box">${scoreA}</div>` : "";
+            const displayScoreB = scoreB ? `<div class="score-box">${scoreB}</div>` : "";
+
+            // 이름 검색 시 형광펜 하이라이트 기능
+            const highlight = (arr) => {
+                if(!nameInput) return arr.join(' & ');
+                return arr.map(p => p === nameInput ? `<span class="highlight">${p}</span>` : p).join(' & ');
+            };
+
+            let borderColor = "#ccc";
+            if (nameInput) {
+                if (teamB.includes(nameInput)) borderColor = "#cc0000";
+                else if (teamA.includes(nameInput)) borderColor = "#0b5394";
+            }
+
+            return `
+                <div class="match-card" style="border-left-color: ${borderColor};">
+                    <div class="court">🏸 ${match.court}번 코트 &nbsp;|&nbsp; 🏅 ${match.category}</div>
+                    <div class="teams">
+                        <div class="${classA}">
+                            <div>${iconA} ${highlight(teamA)}</div>
+                            ${displayScoreA}
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="${classB}">
+                            <div>${iconB} ${highlight(teamB)}</div>
+                            ${displayScoreB}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function searchSchedule() {
             const nameInput = document.getElementById('playerName').value.trim();
             const resultsDiv = document.getElementById('results');
@@ -79,6 +163,7 @@
             }
 
             let matchCount = 0;
+            let htmlStr = "";
 
             scheduleData.forEach(round => {
                 const timeStr = round.time || `${round.round}회차`;
@@ -90,88 +175,59 @@
 
                     if (teamA.includes(nameInput) || teamB.includes(nameInput)) {
                         matchCount++;
-                        const highlight = (arr) => arr.map(p => p === nameInput ? `<span class="highlight">${p}</span>` : p).join(' & ');
-                        const card = document.createElement('div');
-                        card.className = 'match-card';
-                        card.style.borderLeftColor = teamB.includes(nameInput) ? "#cc0000" : "#0b5394"; 
-
-                        card.innerHTML = `
-                            <div class="time">🕒 ${timeStr} &nbsp;|&nbsp; 🏅 ${match.category}</div>
-                            <div class="court">🏸 ${match.court}번 코트</div>
-                            <div class="teams">
-                                <div class="team team-a">🔵 ${highlight(teamA)}</div>
-                                <div class="vs">VS</div>
-                                <div class="team team-b">🔴 ${highlight(teamB)}</div>
-                            </div>
-                        `;
-                        resultsDiv.appendChild(card);
+                        htmlStr += `<div class="time">🕒 ${timeStr}</div>`;
+                        htmlStr += createMatchHTML(match, nameInput);
                     }
                 });
             });
 
             if (matchCount === 0) {
-                resultsDiv.innerHTML = `<p class='empty-msg'>'<b>${nameInput}</b>' 선수의 출전 일정이 없습니다.<br>이름을 다시 한번 확인해주세요.</p>`;
+                resultsDiv.innerHTML = `<p class='empty-msg'>'<b>${nameInput}</b>' 선수의 출전 일정이 없습니다.</p>`;
             } else {
-                resultsDiv.innerHTML = `<div style="text-align:center; margin-bottom:20px; font-weight:bold; color:#0b5394;">✅ [${nameInput}]님은 총 <b>${matchCount}경기</b> 출전합니다.</div>` + resultsDiv.innerHTML;
+                resultsDiv.innerHTML = `<div style="text-align:center; margin-bottom:20px; font-weight:bold; color:#0b5394;">✅ [${nameInput}]님은 총 <b>${matchCount}경기</b> 출전합니다.</div>` + htmlStr;
             }
         }
 
-        // 2. 전체 일정 보기
         function showAllSchedule() {
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = ''; 
             document.getElementById('playerName').value = ''; 
+            let htmlStr = "";
 
             scheduleData.forEach(round => {
                 const timeStr = round.time || `${round.round}회차`;
-                resultsDiv.innerHTML += `<div class="round-title">🕒 ${timeStr}</div>`;
-
+                htmlStr += `<div class="round-title">🕒 ${timeStr}</div>`;
                 round.matches.forEach(match => {
-                    const card = document.createElement('div');
-                    card.className = 'match-card';
-                    
-                    if (match.is_event) {
-                        card.classList.add('event');
-                        card.innerHTML = `<div class="court">🏸 ${match.court}번 코트</div><div style="text-align:center; font-weight:bold; color:#b45f06; padding: 10px 0;">⭐ 특별 이벤트 타임 ⭐</div>`;
-                    } else {
-                        const teamA = match.team_a || [];
-                        const teamB = match.team_b || [];
-                        card.innerHTML = `
-                            <div class="court">🏸 ${match.court}번 코트 &nbsp;|&nbsp; 🏅 ${match.category}</div>
-                            <div class="teams">
-                                <div class="team team-a">🔵 ${teamA.join(' & ')}</div>
-                                <div class="vs">VS</div>
-                                <div class="team team-b">🔴 ${teamB.join(' & ')}</div>
-                            </div>
-                        `;
-                    }
-                    resultsDiv.appendChild(card);
+                    htmlStr += createMatchHTML(match, null);
                 });
             });
+            resultsDiv.innerHTML = htmlStr;
         }
 
-        // 3. 출전 팀(조) 명단 보기
         function showTeams() {
             const resultsDiv = document.getElementById('results');
             document.getElementById('playerName').value = ''; 
             
-            let html = `<div class="round-title">👥 이번 대회 출전 팀 명단 (총 ${teamData.length}팀)</div>`;
-            
-            if (teamData.length === 0) {
-                resultsDiv.innerHTML = html + "<p class='empty-msg'>팀 명단이 아직 생성되지 않았습니다.</p>";
+            if (blueTeam.length === 0 && redTeam.length === 0) {
+                resultsDiv.innerHTML = `<div class="round-title">👥 대회 참가 진영 명단</div><p class='empty-msg'>명단이 아직 생성되지 않았습니다.</p>`;
                 return;
             }
 
-            html += `<div class="team-grid">`;
-            teamData.forEach((team, index) => {
-                html += `
-                    <div class="team-box">
-                        <div style="color:#666; font-size:12px; margin-bottom:5px;">팀 ${index + 1}</div>
-                        <div style="color:#2e7d32; font-size:16px;">${team.join(' & ')}</div>
-                    </div>
-                `;
-            });
-            html += `</div>`;
+            let html = `<div class="round-title">👥 대회 참가 진영 명단</div><div class="faction-container">`;
+            
+            html += `<div class="faction-box blue">
+                        <h3 class="faction-title" style="color:#0b5394;">🔵 청팀 (총 ${blueTeam.length}명)</h3>
+                        <div style="text-align:center;">
+                            ${blueTeam.map(name => `<span class="name-badge badge-blue">${name}</span>`).join('')}
+                        </div>
+                    </div>`;
+
+            html += `<div class="faction-box red">
+                        <h3 class="faction-title" style="color:#cc0000;">🔴 홍팀 (총 ${redTeam.length}명)</h3>
+                        <div style="text-align:center;">
+                            ${redTeam.map(name => `<span class="name-badge badge-red">${name}</span>`).join('')}
+                        </div>
+                    </div></div>`;
+            
             resultsDiv.innerHTML = html;
         }
     </script>
