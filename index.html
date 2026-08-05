@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나루민턴 자체대회 시스템</title>
+    <title>나루민턴 자체대회 대진표</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8750/8750694.png">
     <style>
         :root {
             --bg-color: #f4f7f6; --text-color: #333; --sub-text: #666;
@@ -76,11 +79,13 @@
         .vs { font-weight: bold; color: var(--sub-text); margin: 0 6px; }
         
         .score-box { font-size: 20px; font-weight: 900; margin-top: 8px; color: var(--text-color); letter-spacing: 0; }
-        .winner-a { background-color: var(--win-blue-bg); border: 2px solid var(--blue-border); transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(11,83,148,0.3); }
-        .winner-b { background-color: var(--win-red-bg); border: 2px solid var(--red-border); transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(204,0,0,0.3); }
+        
+        /* 스크롤 깨짐 방지를 위해 transform 요소 완전히 제거 및 테두리/그림자로 강조 처리 */
+        .winner-a { background-color: var(--win-blue-bg); border: 2px solid var(--blue-text); box-shadow: inset 0 0 10px rgba(11,83,148,0.15); }
+        .winner-b { background-color: var(--win-red-bg); border: 2px solid var(--red-text); box-shadow: inset 0 0 10px rgba(204,0,0,0.15); }
         .winner-a .score-box { color: var(--blue-text); font-size: 26px; }
         .winner-b .score-box { color: var(--red-text); font-size: 26px; }
-        .loser { opacity: 0.5; filter: grayscale(50%); }
+        .loser { opacity: 0.5; filter: grayscale(50%); border-color: transparent; }
 
         .player-click { cursor: pointer; text-decoration: underline; text-decoration-style: dotted; padding: 2px 2px; border-radius: 4px; transition: background 0.2s; }
         .player-click:active { background-color: rgba(0,0,0,0.1); }
@@ -126,7 +131,6 @@
         .stat-diff-pos { color: #2e7d32; }
         .stat-diff-neg { color: #c62828; }
         
-        /* 🚀 팝업 내 검색 버튼 스타일 */
         .btn-modal-search {
             width: 100%; padding: 12px; font-size: 14px; font-weight: bold; color: white;
             background-color: #0b5394; border: none; border-radius: 8px; cursor: pointer;
@@ -140,10 +144,10 @@
     <div class="header">
         <h1>🏸 나루민턴 실시간 중계</h1>
         <p>이름 검색, 전체 일정, 점수 및 진영을 확인하세요!</p>
+        <p>경기 결과는 점수 입력후 1분정도 시간이 소요됩니다.</p>
         <button class="dark-mode-btn" id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
     </div>
 
-    <!-- 팀 종합 스코어 -->
     <div class="scoreboard-container">
         <div class="score-box-main score-blue">
             🔵 청팀
@@ -155,7 +159,6 @@
         </div>
     </div>
 
-    <!-- 실시간 명예의 전당 -->
     <div class="ranking-board">
         <div class="ranking-title">🏆 실시간 다승왕 랭킹 Top 3</div>
         <div id="rankingList">
@@ -177,7 +180,6 @@
     <div id="results"></div>
     <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">⬆️</button>
 
-    <!-- 개인 전적 돋보기 모달 -->
     <div class="modal-overlay" id="playerModal" onclick="if(event.target===this) closePlayerModal()">
         <div class="modal-content">
             <button class="modal-close" onclick="closePlayerModal()">×</button>
@@ -201,7 +203,6 @@
                     <div class="stat-val stat-diff-pos" id="modalDiff">+0</div>
                 </div>
             </div>
-            <!-- 🚀 팝업 내 경기 모아보기 버튼 -->
             <button class="btn-modal-search" onclick="searchFromModal()">🔍 이 선수 경기 모아보기</button>
             <p style="font-size: 11px; color: var(--sub-text); margin-top: 10px; margin-bottom: 0;">진행이 완료된 경기 기준입니다.</p>
         </div>
@@ -330,12 +331,11 @@
             document.getElementById('playerModal').style.display = 'none';
         }
 
-        // 🚀 팝업 안에서 바로 검색을 실행하는 함수
         function searchFromModal() {
             const targetName = document.getElementById('modalName').innerText;
-            document.getElementById('playerName').value = targetName; // 검색창에 이름 세팅
-            closePlayerModal(); // 팝업 닫기
-            clickSearch(); // 검색 실행
+            document.getElementById('playerName').value = targetName;
+            closePlayerModal();
+            clickSearch();
         }
 
         function loadData(isAuto = false) {
