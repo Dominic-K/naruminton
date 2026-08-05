@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나루민턴 자체대회 대진표</title>
-    <!-- PWA를 위한 기본 메타태그 설정 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8750/8750694.png"> <!-- 임시 아이콘 -->
+    <title>나루민턴 자체대회 시스템</title>
     <style>
         :root {
             --bg-color: #f4f7f6; --text-color: #333; --sub-text: #666;
@@ -33,13 +29,6 @@
         .header h1 { color: var(--blue-text); font-size: 24px; margin: 0 0 10px 0; }
         .header p { color: var(--sub-text); font-size: 14px; margin: 0; }
         .dark-mode-btn { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 20px; cursor: pointer; }
-
-        .pwa-btn {
-            position: absolute; top: 0; left: 0; background-color: #0b5394; color: white;
-            border: none; padding: 5px 10px; border-radius: 20px; font-size: 12px;
-            font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
 
         .scoreboard-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
         .score-box-main { flex: 1; max-width: 150px; text-align: center; padding: 15px 10px; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -75,18 +64,16 @@
         
         .teams { display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
         
-        /* 🚀 팀 이름 짤림 방지 업데이트 (자간 압축 및 여백 축소) */
         .team { 
             flex: 1; text-align: center; 
-            padding: 12px 2px; /* 좌우 여백을 줄여 공간 확보 */
+            padding: 12px 2px;
             border-radius: 8px; font-weight: bold; transition: all 0.3s;
-            word-break: keep-all; /* 마지막 한 글자만 줄바꿈되는 현상 방지 */
-            letter-spacing: -0.5px; /* 자간을 살짝 좁혀서 공간 추가 확보 */
+            word-break: keep-all; letter-spacing: -0.5px;
         }
         
         .team-a { background-color: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-text); }
         .team-b { background-color: var(--red-bg); border: 1px solid var(--red-border); color: var(--red-text); }
-        .vs { font-weight: bold; color: var(--sub-text); margin: 0 6px; } /* VS 박스 여백도 살짝 줄임 */
+        .vs { font-weight: bold; color: var(--sub-text); margin: 0 6px; }
         
         .score-box { font-size: 20px; font-weight: 900; margin-top: 8px; color: var(--text-color); letter-spacing: 0; }
         .winner-a { background-color: var(--win-blue-bg); border: 2px solid var(--blue-border); transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(11,83,148,0.3); }
@@ -138,12 +125,19 @@
         .stat-val { font-size: 16px; font-weight: bold; color: var(--text-color); }
         .stat-diff-pos { color: #2e7d32; }
         .stat-diff-neg { color: #c62828; }
+        
+        /* 🚀 팝업 내 검색 버튼 스타일 */
+        .btn-modal-search {
+            width: 100%; padding: 12px; font-size: 14px; font-weight: bold; color: white;
+            background-color: #0b5394; border: none; border-radius: 8px; cursor: pointer;
+            margin-top: 5px; transition: background-color 0.2s;
+        }
+        .btn-modal-search:active { background-color: #083c6b; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <button class="pwa-btn" id="installBtn" onclick="installPWA()">⬇️ 앱 설치</button>
         <h1>🏸 나루민턴 실시간 중계</h1>
         <p>이름 검색, 전체 일정, 점수 및 진영을 확인하세요!</p>
         <button class="dark-mode-btn" id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
@@ -207,7 +201,9 @@
                     <div class="stat-val stat-diff-pos" id="modalDiff">+0</div>
                 </div>
             </div>
-            <p style="font-size: 12px; color: var(--sub-text); margin: 0;">진행이 완료된 경기 기준입니다.</p>
+            <!-- 🚀 팝업 내 경기 모아보기 버튼 -->
+            <button class="btn-modal-search" onclick="searchFromModal()">🔍 이 선수 경기 모아보기</button>
+            <p style="font-size: 11px; color: var(--sub-text); margin-top: 10px; margin-bottom: 0;">진행이 완료된 경기 기준입니다.</p>
         </div>
     </div>
 
@@ -217,27 +213,6 @@
         let redTeam = [];
         let currentViewMode = 'all'; 
         let currentSearchName = '';
-
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBtn').style.display = 'flex';
-        });
-
-        function installPWA() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        document.getElementById('installBtn').style.display = 'none';
-                    }
-                    deferredPrompt = null;
-                });
-            } else {
-                alert("아이폰(Safari) 유저이신가요?\n하단 메뉴 탭의 [공유하기 ⍗] 버튼을 누른 후\n[홈 화면에 추가 ➕]를 선택하시면 어플처럼 쓸 수 있습니다!");
-            }
-        }
 
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
@@ -355,6 +330,14 @@
             document.getElementById('playerModal').style.display = 'none';
         }
 
+        // 🚀 팝업 안에서 바로 검색을 실행하는 함수
+        function searchFromModal() {
+            const targetName = document.getElementById('modalName').innerText;
+            document.getElementById('playerName').value = targetName; // 검색창에 이름 세팅
+            closePlayerModal(); // 팝업 닫기
+            clickSearch(); // 검색 실행
+        }
+
         function loadData(isAuto = false) {
             fetch('web_schedule.json?t=' + new Date().getTime())
                 .then(response => response.json())
@@ -449,7 +432,6 @@
             const displayScoreA = scoreA ? `<div class="score-box">${scoreA}</div>` : "";
             const displayScoreB = scoreB ? `<div class="score-box">${scoreB}</div>` : "";
 
-            // 🚀 6. 이름 사이를 ' & ' 대신 ', ' 로 변경하여 여백 확보
             const clickableNames = (arr) => {
                 return arr.map(p => {
                     const isSearched = nameInput && p.includes(nameInput);
