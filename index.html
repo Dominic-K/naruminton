@@ -34,7 +34,6 @@
         .header p { color: var(--sub-text); font-size: 14px; margin: 0; }
         .dark-mode-btn { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 20px; cursor: pointer; }
 
-        /* 🚀 앱으로 추가 버튼 (좌측 상단) */
         .pwa-btn {
             position: absolute; top: 0; left: 0; background-color: #0b5394; color: white;
             border: none; padding: 5px 10px; border-radius: 20px; font-size: 12px;
@@ -48,7 +47,6 @@
         .score-red { background-color: var(--red-bg); border: 2px solid var(--red-border); color: var(--red-text); }
         .score-num { font-size: 28px; display: block; margin-top: 5px; }
 
-        /* 🚀 명예의 전당 (랭킹보드) */
         .ranking-board {
             background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 25px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border-color);
@@ -76,20 +74,28 @@
         .court { font-size: 16px; font-weight: bold; margin-bottom: 12px; text-align: center; }
         
         .teams { display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
-        .team { flex: 1; text-align: center; padding: 12px 5px; border-radius: 8px; font-weight: bold; transition: all 0.3s; }
+        
+        /* 🚀 팀 이름 짤림 방지 업데이트 (자간 압축 및 여백 축소) */
+        .team { 
+            flex: 1; text-align: center; 
+            padding: 12px 2px; /* 좌우 여백을 줄여 공간 확보 */
+            border-radius: 8px; font-weight: bold; transition: all 0.3s;
+            word-break: keep-all; /* 마지막 한 글자만 줄바꿈되는 현상 방지 */
+            letter-spacing: -0.5px; /* 자간을 살짝 좁혀서 공간 추가 확보 */
+        }
+        
         .team-a { background-color: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-text); }
         .team-b { background-color: var(--red-bg); border: 1px solid var(--red-border); color: var(--red-text); }
-        .vs { font-weight: bold; color: var(--sub-text); margin: 0 10px; }
+        .vs { font-weight: bold; color: var(--sub-text); margin: 0 6px; } /* VS 박스 여백도 살짝 줄임 */
         
-        .score-box { font-size: 20px; font-weight: 900; margin-top: 8px; color: var(--text-color); }
+        .score-box { font-size: 20px; font-weight: 900; margin-top: 8px; color: var(--text-color); letter-spacing: 0; }
         .winner-a { background-color: var(--win-blue-bg); border: 2px solid var(--blue-border); transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(11,83,148,0.3); }
         .winner-b { background-color: var(--win-red-bg); border: 2px solid var(--red-border); transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(204,0,0,0.3); }
         .winner-a .score-box { color: var(--blue-text); font-size: 26px; }
         .winner-b .score-box { color: var(--red-text); font-size: 26px; }
         .loser { opacity: 0.5; filter: grayscale(50%); }
 
-        /* 선수 이름 클릭 스타일 */
-        .player-click { cursor: pointer; text-decoration: underline; text-decoration-style: dotted; padding: 2px 4px; border-radius: 4px; transition: background 0.2s; }
+        .player-click { cursor: pointer; text-decoration: underline; text-decoration-style: dotted; padding: 2px 2px; border-radius: 4px; transition: background 0.2s; }
         .player-click:active { background-color: rgba(0,0,0,0.1); }
         
         .highlight { color: #d90429; font-weight: 900; background-color: var(--highlight-bg); text-decoration-style: solid; }
@@ -112,7 +118,6 @@
             padding: 15px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
-        /* 🚀 전적 돋보기 모달 팝업 */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--modal-bg); z-index: 100; justify-content: center; align-items: center;
@@ -156,7 +161,7 @@
         </div>
     </div>
 
-    <!-- 🚀 실시간 명예의 전당 (Top 3 랭킹) -->
+    <!-- 실시간 명예의 전당 -->
     <div class="ranking-board">
         <div class="ranking-title">🏆 실시간 다승왕 랭킹 Top 3</div>
         <div id="rankingList">
@@ -178,7 +183,7 @@
     <div id="results"></div>
     <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">⬆️</button>
 
-    <!-- 🚀 개인 전적 돋보기 모달 -->
+    <!-- 개인 전적 돋보기 모달 -->
     <div class="modal-overlay" id="playerModal" onclick="if(event.target===this) closePlayerModal()">
         <div class="modal-content">
             <button class="modal-close" onclick="closePlayerModal()">×</button>
@@ -213,7 +218,6 @@
         let currentViewMode = 'all'; 
         let currentSearchName = '';
 
-        // 🚀 1. PWA 설치 로직
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -231,7 +235,6 @@
                     deferredPrompt = null;
                 });
             } else {
-                // 아이폰 등 브라우저 지원 불가 시 안내
                 alert("아이폰(Safari) 유저이신가요?\n하단 메뉴 탭의 [공유하기 ⍗] 버튼을 누른 후\n[홈 화면에 추가 ➕]를 선택하시면 어플처럼 쓸 수 있습니다!");
             }
         }
@@ -247,7 +250,6 @@
             document.getElementById('darkModeToggle').innerText = '☀️';
         }
 
-        // 🚀 2. 개인별 전적 계산기
         function getPlayerStats() {
             let stats = {};
             blueTeam.forEach(p => stats[p] = { name: p, team: 'blue', matches: 0, wins: 0, diff: 0 });
@@ -287,11 +289,9 @@
             return stats;
         }
 
-        // 🚀 3. 명예의 전당(랭킹 보드) 업데이트
         function updateRankingBoard(stats) {
             let players = Object.values(stats).filter(p => p.matches > 0);
             
-            // 승수 -> 득실차 -> 뛴 경기수(적은 순) 정렬
             players.sort((a, b) => {
                 if (b.wins !== a.wins) return b.wins - a.wins;
                 if (b.diff !== a.diff) return b.diff - a.diff;
@@ -322,7 +322,6 @@
             rankDiv.innerHTML = html;
         }
 
-        // 🚀 4. 모달 열기/닫기 함수
         function openPlayerModal(playerName) {
             const stats = getPlayerStats()[playerName];
             if (!stats) return;
@@ -450,13 +449,13 @@
             const displayScoreA = scoreA ? `<div class="score-box">${scoreA}</div>` : "";
             const displayScoreB = scoreB ? `<div class="score-box">${scoreB}</div>` : "";
 
-            // 🚀 5. 모든 선수의 이름을 클릭 가능하게 만들기 (부분 일치 하이라이트는 유지)
+            // 🚀 6. 이름 사이를 ' & ' 대신 ', ' 로 변경하여 여백 확보
             const clickableNames = (arr) => {
                 return arr.map(p => {
                     const isSearched = nameInput && p.includes(nameInput);
                     const hlClass = isSearched ? 'highlight' : '';
                     return `<span class="player-click ${hlClass}" onclick="openPlayerModal('${p}')">${p}</span>`;
-                }).join(' & ');
+                }).join(', ');
             };
 
             let borderColor = "var(--border-color)";
